@@ -114,13 +114,12 @@ app.post("/decode", upload.single('nftImage'), (req, res) => {
     const command = `python3 scripts/decode.py "${signature}" "${uploadedPath}"`;
 
     exec(command, (error, stdout, stderr) => {
-        // Delete uploaded file after processing
-        fs.unlinkSync(uploadedPath);
+	try{
 
-        if (error) {
-            console.error("Decoding error:", error, stderr);
-            return res.status(500).send("Error decoding NFT image.");
-        }
+       	    if (error) {
+                console.error("Decoding error:", error, stderr);
+                return res.status(500).send("Error decoding NFT image.");
+            }
 
         // present decoded message
         res.send(`
@@ -128,6 +127,12 @@ app.post("/decode", upload.single('nftImage'), (req, res) => {
             <pre>${stdout}</pre>
             <a href="/decode">Go Back</a>
         `);
+	} finally {
+	    fs.unlink(uploadedPath, (err) => {
+	        if (err) console.error("Failed to delete file:", err);
+
+            });
+        }
     });
 });
 
